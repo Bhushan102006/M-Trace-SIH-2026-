@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.sh",
+  "framework": "vite",
+  "buildCommand": "cd mplads-sentinel/frontend && npm install && npm run build",
+  "outputDirectory": "mplads-sentinel/frontend/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

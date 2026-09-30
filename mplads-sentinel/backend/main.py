@@ -12,6 +12,7 @@ Run with: uvicorn main:app --reload --port 8000
 
 from __future__ import annotations
 
+import os
 import math
 import datetime
 import uuid
@@ -24,6 +25,7 @@ from pydantic import BaseModel
 from ai_sentinel import MTraceIntelligenceEngine
 from data_engine import MPLADSDataEngine
 
+
 # ---------------------------------------------------------------------------
 # App bootstrap
 # ---------------------------------------------------------------------------
@@ -34,9 +36,21 @@ app = FastAPI(
     version="3.0.0",
 )
 
+# Configure CORS for local development, Vercel deployments, and production domains
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
+custom_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+default_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+allowed_origins = list(set(default_origins + custom_origins))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "*"],
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -1057,6 +1071,18 @@ def refresh_data() -> dict:
     return {"status": "refreshed", "stats": {k: _safe_val(v) for k, v in stats.items()}}
 
 
+@app.get("/")
+def root() -> dict:
+    return {
+        "status": "online",
+        "service": "M-TRACE MPLADS IntelliTrack API",
+        "version": "3.0.0",
+        "health": "/health",
+        "docs": "/docs",
+        "records": len(_df),
+    }
+
+
 @app.get("/health")
 def health() -> dict:
     return {
@@ -1069,8 +1095,10 @@ def health() -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Dev entry point
+# Dev / Production entry point
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    is_dev = os.environ.get("ENVIRONMENT", "development").lower() == "development"
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=is_dev)

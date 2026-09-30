@@ -198,8 +198,10 @@ CASE_STATUSES = [
 def _load_real_mp_data() -> list[dict]:
     """Load real MP names, states, constituencies, and allocated amounts from Parliament CSV."""
     candidates = [
-        Path(__file__).resolve().parent.parent.parent / "Allocated Limit for Honble MPs.csv",
+        Path(__file__).resolve().parent / "Allocated Limit for Honble MPs.csv",
+        Path(__file__).resolve().parent / "data" / "Allocated Limit for Honble MPs.csv",
         Path(__file__).resolve().parent.parent / "Allocated Limit for Honble MPs.csv",
+        Path(__file__).resolve().parent.parent.parent / "Allocated Limit for Honble MPs.csv",
         Path("Allocated Limit for Honble MPs.csv"),
     ]
     csv_path = next((p for p in candidates if p.exists()), None)
